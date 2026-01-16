@@ -1,5 +1,7 @@
 ---
+const currentPath = Astro.url.pathname;
 ---
+
 
 <footer class="border-t border-neutral-200 bg-[#f8f8f6]">
   <div class="mx-auto max-w-6xl px-6 py-20">
@@ -8,20 +10,40 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
 
       <!-- LEFT: BIG NAV -->
-      <nav class="space-y-10">
-        <a href="/" class="block text-5xl md:text-6xl font-light tracking-tight hover:opacity-60 transition">
-          Home →
-        </a>
-        <a href="/" class="block text-5xl md:text-6xl font-light tracking-tight hover:opacity-60 transition">
-          Writings →
-        </a>
-        <a href="/account" class="block text-5xl md:text-6xl font-light tracking-tight hover:opacity-60 transition">
-          Account →
-        </a>
-        <a href="/login" class="block text-5xl md:text-6xl font-light tracking-tight hover:opacity-60 transition">
-          Enter →
-        </a>
-      </nav>
+   <nav class="space-y-10">
+  <a
+    href="/"
+    class={`block text-5xl md:text-6xl font-light tracking-tight transition
+      ${currentPath === "/" ? "underline" : "hover:opacity-60"}`}
+  >
+    Home →
+  </a>
+
+  <a
+    href="/writings"
+    class={`block text-5xl md:text-6xl font-light tracking-tight transition
+      ${currentPath.startsWith("/writings") ? "underline" : "hover:opacity-60"}`}
+  >
+    Writings →
+  </a>
+
+  <a
+    href="/account"
+    class={`block text-5xl md:text-6xl font-light tracking-tight transition
+      ${currentPath === "/account" ? "underline" : "hover:opacity-60"}`}
+  >
+    Account →
+  </a>
+
+  <a
+    href="/login"
+    class={`block text-5xl md:text-6xl font-light tracking-tight transition
+      ${currentPath === "/login" ? "underline" : "hover:opacity-60"}`}
+  >
+    Enter →
+  </a>
+</nav>
+
 
       <!-- RIGHT: NEWSLETTER + CONTACT -->
       <div class="space-y-16">

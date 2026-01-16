@@ -1,7 +1,9 @@
 ---
 const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+const currentPath = Astro.url.pathname;
 ---
+
 
 <header class="fixed top-0 z-50 w-full bg-white border-b border-neutral-200">
   <div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
@@ -27,54 +29,72 @@ const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 <script
   type="module"
-  define:vars={{ SUPABASE_URL, SUPABASE_KEY }}
+  define:vars={{ SUPABASE_URL, SUPABASE_KEY, currentPath }}
 >
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
   const nav = document.getElementById("nav");
-  if (!nav) {
-    console.warn("Navbar not found");
-  } else {
-    function render(session) {
-  nav.hidden = false;
 
-  nav.innerHTML = session
-    ? `
-      <a href="/">Home</a>
-      <a href="/writings">Writings</a>
-      <a href="/posts/new">Write</a>
-      <a href="/account">Account</a>
-      <button id="logout" type="button">Log out</button>
+  function link(href, label) {
+    const active =
+      currentPath === href || currentPath.startsWith(href + "/");
 
-    `
-    : `
-      <a href="/">Home</a>
-      <a href="/about">About</a>
-      <a href="/login">Login</a>
-      <a href="/signup">Sign up</a>
+    return `
+      <a
+        href="${href}"
+        class="${
+          active
+            ? "underline font-medium text-neutral-900"
+            : "text-neutral-600 hover:text-neutral-900 transition"
+        }"
+      >
+        ${label}
+      </a>
     `;
-}
-
-
-
-    // Initial state
-    supabase.auth.getSession().then(({ data }) => {
-      render(data.session);
-    });
-
-    // React to login/logout
-    supabase.auth.onAuthStateChange((_event, session) => {
-      render(session);
-    });
-    document.addEventListener("click", async (e) => {
-  if (e.target?.id === "logout") {
-    await supabase.auth.signOut();
-    render(null);
-    window.location.href = "/";
   }
-});
 
+  function render(session) {
+    if (!nav) return;
+
+    nav.hidden = false;
+
+    nav.innerHTML = session
+      ? `
+          ${link("/", "Home")}
+          ${link("/writings", "Writings")}
+          ${link("/posts/new", "Write")}
+          ${link("/account", "Account")}
+          <button
+            id="logout"
+            class="text-neutral-600 hover:text-neutral-900 transition"
+          >
+            Log out
+          </button>
+        `
+      : `
+          ${link("/", "Home")}
+          ${link("/about", "About")}
+          ${link("/login", "Login")}
+          ${link("/signup", "Sign up")}
+        `;
   }
+
+  // Initial render
+  supabase.auth.getSession().then(({ data }) => {
+    render(data.session);
+  });
+
+  // React to auth changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    render(session);
+  });
+
+  // Logout handler
+  document.addEventListener("click", async (e) => {
+    if (e.target?.id === "logout") {
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    }
+  });
 </script>
