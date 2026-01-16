@@ -1,11 +1,323 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+
+
+// Posts
+const posts = await getCollection("posts");
+posts.sort(
+  (a, b) =>
+    new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+const recentPosts = posts.slice(0, 5);
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+
+
+
+<BaseLayout title="Home" >
+
+
+
+  <!-- ================= HERO SECTION ================= -->
+<section
+  class="relative w-full reveal"
+  style="height: calc(100vh - 64px); margin-top: 64px;"
+>
+  <img
+    src="/images/image-2.jpg"
+    alt="Hero painting"
+    class="h-full w-full object-cover object-[50%_65%]"
+  />
+
+  <div class="absolute inset-0 z-10 flex items-start px-6 pt-40">
+    <div class="max-w-7xl text-white">
+      <h1 class="whitespace-nowrap text-4xl font-light md:text-6xl">
+        Place for Haiku & Painting
+      </h1>
+
+      <p class="mt-6 max-w-lg text-sm leading-relaxed text-white/85">
+        A quiet online gallery for paintings and haiku —
+        slow work, careful observation, and stillness.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+
+
+  <!-- ================= My Recent Articles ================= -->
+  <div class="mx-auto max-w-6xl px-6 py-16">
+
+    <div class="grid items-center gap-16 md:grid-cols-2">
+      <!-- Image -->
+      <div class="relative aspect-[3/3] max-h-[420px] overflow-hidden rounded-xl">
+        {recentPosts.map((post, index) => (
+          <img
+            src={post.data.cover}
+            alt={post.data.title}
+            class={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out
+              ${index === 0 ? "opacity-100" : "opacity-0"}`}
+            data-image
+          />
+        ))}
+      </div>
+
+      <!-- Text (VERTICALLY CENTERED) -->
+      <div class="flex min-h-[420px] flex-col justify-center">
+        {recentPosts.map((post, index) => (
+          <div
+            class={`${index === 0 ? "block" : "hidden"}`}
+            data-content
+          >
+            <h3 class="text-3xl font-light leading-tight text-neutral-900">
+              {post.data.title}
+            </h3>
+             
+             <p class="mt-2 text-xs uppercase tracking-wide text-neutral-500">
+              {new Date(post.data.date).toLocaleDateString()}
+                </p>
+
+
+            <!-- THIS fixes the emptiness -->
+            <p class="mt-6 max-w-md text-sm leading-relaxed text-neutral-600">
+              {post.data.description}
+            </p>
+
+            <a
+              href={`/articles/${post.slug}`}
+              class="mt-8 inline-block text-sm underline text-neutral-900"
+            >
+              Read article
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+  <!-- ================= Haiku ================= -->
+<section class="mx-auto max-w-6xl px-6 py-20 reveal">
+  <div class="grid grid-cols-1 items-center gap-12 md:grid-cols-3">
+
+    <!-- Left image -->
+  <div class="relative">
+  <img
+    src="/images/haiku-left.png"
+    alt="Painting detail"
+    class="w-full object-cover opacity-80"
+  />
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f8f8f6] via-transparent to-[#f8f8f6]"></div>
+</div>
+
+
+    <!-- Center haiku -->
+    <div class="text-center">
+      <!-- Wind -->
+      <p class="text-lg font-light leading-relaxed text-neutral-900">
+        風ひとつ<br />
+        描かれぬ線が<br />
+        空を行く
+      </p>
+
+      <p class="mt-4 text-sm italic text-neutral-500">
+        One passing wind — an invisible brushstroke crosses the sky.
+      </p>
+
+      <div class="my-12 h-px w-20 mx-auto bg-neutral-200"></div>
+
+      <!-- Snow -->
+      <p class="text-lg font-light leading-relaxed text-neutral-900">
+        雪しずか<br />
+        筆を置く音も<br />
+        白くなる
+      </p>
+
+      <p class="mt-4 text-sm italic text-neutral-500">
+        Quiet snow — even the sound of the brush turns white.
+      </p>
+    </div>
+
+    <!-- Right image -->
+    <div class="relative">
+  <img
+    src="/images/haiku-right.png"
+    alt="Painting detail"
+    class="w-full object-cover opacity-80"
+  />
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f8f8f6] via-transparent to-[#f8f8f6]"></div>
+</div>
+
+
+  </div>
+</section>
+
+
+
+
+  <!-- ================= Book Recommendation ================= -->
+<section class="mx-auto max-w-6xl px-6 py-16 reveal">
+  <h2 class="mb-12 text-2xl font-light text-neutral-900">
+    Book recommendations
+  </h2>
+
+  <div class="flex flex-wrap justify-center gap-8">
+    <img src="/books/book-1.jpg" alt="Book cover"
+      class="book-hover" />
+    <img src="/books/book-2.jpeg" alt="Book cover"
+      class="book-hover" />
+    <img src="/books/book-3.jpg" alt="Book cover"
+      class="book-hover" />
+    <img src="/books/book-4.jpg" alt="Book cover"
+      class="book-hover" />
+    <img src="/books/book-5.jpg" alt="Book cover"
+      class="book-hover" />
+  </div>
+</section>
+
+
+
+
+</BaseLayout>
+
+
+<style>
+  .books-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .books-track {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+ .book {
+  width: 120px;
+  opacity: 0.35;
+  transform: scale(0.85);
+}
+
+.book.active {
+  width: 170px;
+  opacity: 1;
+}
+
+
+  .book img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
+  }
+
+  .book-hover {
+  width: 140px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
+
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
+
+  cursor: pointer;
+}
+
+.book-hover:hover {
+  transform: scale(1.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+</style>
+
+
+
+<script>
+  const books = document.querySelectorAll(".book");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+
+  let index = 0;
+
+  function update() {
+    books.forEach((book, i) => {
+      book.classList.toggle("active", i === index);
+    });
+  }
+
+  next.addEventListener("click", () => {
+    index = (index + 1) % books.length;
+    update();
+  });
+
+  prev.addEventListener("click", () => {
+    index = (index - 1 + books.length) % books.length;
+    update();
+  });
+
+  update();
+</script>
+
+
+
+
+
+
+<script>
+  const images = document.querySelectorAll("[data-image]");
+  const contents = document.querySelectorAll("[data-content]");
+
+  let current = 0;
+  const total = images.length;
+  const INTERVAL = 2000; // 2 seconds 
+
+  function show(index) {
+    images.forEach((img, i) => {
+      img.style.opacity = i === index ? "1" : "0";
+    });
+
+    contents.forEach((c, i) => {
+      c.style.display = i === index ? "block" : "none";
+    });
+
+    current = index;
+  }
+
+  function next() {
+    show((current + 1) % total);
+  }
+
+  show(0);
+  setInterval(next, INTERVAL);
+</script>
+
+
+<script>
+  const reveals = document.querySelectorAll(".reveal");
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  reveals.forEach(el => observer.observe(el));
+</script>

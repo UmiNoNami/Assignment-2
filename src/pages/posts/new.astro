@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+export const prerender = false;
+---
+
+<BaseLayout title="Write">
+  <section class="max-w-4xl mx-auto px-6 pt-32 pb-24">
+
+    <h1 class="font-jersey text-4xl md:text-5xl mb-12">
+      Write your thought
+    </h1>
+
+    <!-- Window wrapper -->
+    <div class="relative bg-neutral-800 rounded-md p-4 pb-20 border border-neutral-700 overflow-visible">
+
+      <!-- Window controls (2005 style) -->
+      <div class="flex items-center gap-4 mb-4 text-neutral-400 text-sm">
+        <i class="fa-sharp fa-regular fa-window-minimize"></i>
+        <i class="fa-regular fa-window-maximize"></i>
+        <i class="fa-solid fa-x"></i>
+      </div>
+
+      <!-- Editor area -->
+      <div class="bg-neutral-900 rounded-sm p-6 border border-neutral-700">
+        <textarea
+  id="content"
+  placeholder="Begin wherever you like…"
+  class="w-full h-[420px] resize-none bg-transparent outline-none
+         text-neutral-200 placeholder:text-neutral-500
+         text-lg leading-relaxed"
+></textarea>
+
+      </div>
+
+      <!-- Save button -->
+      <button
+  id="save"
+  class="absolute -bottom-12 right-6
+         bg-neutral-700 text-neutral-100
+         font-jersey px-6 py-2 rounded-sm
+         hover:bg-neutral-600 transition"
+>
+  Save
+</button>
+
+
+    </div>
+  </section>
+</BaseLayout>
+
+
+<script
+  type="module"
+  define:vars={{ 
+    SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
+    SUPABASE_KEY: import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  }}
+>
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const saveBtn = document.getElementById("save");
+  const textarea = document.getElementById("content");
+
+  saveBtn.addEventListener("click", async () => {
+    const content = textarea.value.trim();
+    if (!content) return;
+
+    saveBtn.textContent = "Saving…";
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("You must be logged in to save.");
+      saveBtn.textContent = "Save";
+      return;
+    }
+
+    const { error } = await supabase.from("writings").insert({
+      user_id: user.id,
+      content,
+    });
+
+    if (error) {
+      console.error(error);
+      saveBtn.textContent = "Error";
+    } else {
+      saveBtn.textContent = "Saved ✓";
+      textarea.value = "";
+    }
+  });
+</script>

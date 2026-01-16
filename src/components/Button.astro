@@ -1,0 +1,33 @@
+---
+const props = Astro.props;
+
+const as = props.as ?? "button";
+const href = props.href ?? "";
+const variant = props.variant ?? "primary";
+
+const base =
+  "inline-flex items-center justify-center rounded-full px-6 py-3 text-sm uppercase tracking-widest transition focus:outline-none";
+
+const variants = {
+  primary: "bg-neutral-100 text-neutral-900 hover:bg-neutral-200",
+  ghost: "border border-white/20 text-neutral-100 hover:bg-white/10",
+  subtle: "text-neutral-400 hover:text-neutral-200",
+  danger: "border border-red-500/30 text-red-400 hover:bg-red-500/10",
+
+ 
+  blue: "bg-sky-600 text-white hover:bg-sky-700",
+};
+
+const variantClass = variants[variant] ?? variants.primary;
+const classes = `${base} ${variantClass}`;
+---
+
+{as === "a" ? (
+  <a href={href} class={classes} {...props}>
+    <slot />
+  </a>
+) : (
+  <button class={classes} {...props}>
+    <slot />
+  </button>
+)}

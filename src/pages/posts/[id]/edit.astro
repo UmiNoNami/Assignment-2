@@ -1,0 +1,81 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { supabaseServer } from "../../../lib/supabaseServer";
+import Button from "../../../components/Button.astro";
+
+
+const supabase = supabaseServer({
+  request: Astro.request,
+  cookies: Astro.cookies,
+});
+
+const user = await getUser(Astro);
+const { id } = Astro.params;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const { data: post } = await supabase
+  .from("posts")
+  .select("*")
+  .eq("id", id)
+  .single();
+
+if (!post || post.user_id !== user.id) {
+  return new Response("Forbidden", { status: 403 });
+}
+---
+<div class="flex items-center justify-between pt-16">
+
+  <!-- Save / Cancel -->
+  <div class="flex gap-6">
+    <Button>
+      Save
+    </Button>
+
+    <Button as="a" href={`/posts/${id}`} variant="subtle">
+      Cancel
+    </Button>
+  </div>
+
+  <!-- Delete -->
+  <form
+    method="POST"
+    action="/api/posts/delete"
+    onsubmit="return confirm('Delete this post permanently?')"
+  >
+    <input type="hidden" name="id" value={id} />
+    <Button variant="danger">
+      Delete
+    </Button>
+  </form>
+
+</div>
+
+
+<BaseLayout title="Edit Post">
+  <h1 class="text-xl font-bold mb-4">Edit Post</h1>
+
+  <form method="POST" action="/api/posts/update" class="flex flex-col gap-4 max-w-lg">
+    <input type="hidden" name="id" value={post.id} />
+
+    <input
+      name="title"
+      type="text"
+      value={post.title}
+      required
+      class="border p-2"
+    />
+
+    <textarea
+      name="content"
+      required
+      class="border p-2 h-40"
+    >{post.content}</textarea>
+
+    <button class="bg-black text-white p-2">
+      Update
+    </button>
+  </form>
+</BaseLayout>

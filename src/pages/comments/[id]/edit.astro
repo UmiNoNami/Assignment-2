@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { supabaseServer } from "../../../lib/supabaseServer";
+
+const id = Astro.params.id;
+if (!id) throw new Error("Missing comment id");
+
+const supabase = supabaseServer({
+  request: Astro.request,
+  cookies: Astro.cookies,
+});
+
+
+// Auth
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+// Load comment
+const { data: comment, error } = await supabase
+  .from("comments")
+  .select("id, content, article_slug, user_id")
+  .eq("id", id)
+  .single();
+
+if (error || !comment) {
+  return new Response("Comment not found", { status: 404 });
+}
+
+// Ownership check (extra safety)
+if (comment.user_id !== user.id) {
+  return new Response("Forbidden", { status: 403 });
+}
+---
+
+<BaseLayout title="Edit Comment" >
+  <section class="max-w-2xl mx-auto px-6 pt-32 pb-40 space-y-6">
+
+    <h1 class="text-2xl font-light">
+      Edit comment
+    </h1>
+
+    <form
+      method="POST"
+      action="/api/comments/update"
+      class="space-y-4"
+    >
+      <textarea
+        name="content"
+        required
+        rows="6"
+        class="w-full bg-neutral-900 border border-white/10 rounded-xl p-4 text-sm focus:outline-none"
+      >{comment.content}</textarea>
+
+      <input type="hidden" name="id" value={comment.id} />
+      <input type="hidden" name="slug" value={comment.article_slug} />
+
+      <div class="flex items-center gap-6 pt-2">
+  <button
+    type="submit"
+    class="rounded-xl border border-emerald-400/60
+           px-6 py-2
+           text-sm text-emerald-300
+           hover:bg-emerald-400 hover:text-black
+           transition"
+  >
+    Save changes
+  </button>
+
+  <a
+    href={`/articles/${comment.article_slug}`}
+    class="text-sm text-neutral-400 hover:text-white transition"
+  >
+    Cancel
+  </a>
+</div>
+
+    </form>
+
+  </section>
+</BaseLayout>

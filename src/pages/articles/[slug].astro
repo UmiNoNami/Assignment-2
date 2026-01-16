@@ -1,0 +1,172 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { supabaseServer } from "../../lib/supabaseServer";
+
+const { slug } = Astro.params;
+
+// Load markdown article
+const posts = await getCollection("posts");
+const post = posts.find((p) => p.slug === slug);
+if (!post) throw new Error("Article not found");
+const { Content } = await post.render();
+const editId = Astro.url.searchParams.get("edit");
+
+
+// Supabase
+const supabase = supabaseServer(Astro);
+
+// Session
+const { data: { session } } = await supabase.auth.getSession();
+const user = session?.user;
+
+// Load comments
+const { data: comments } = await supabase
+  .from("comments")
+  .select("id, content, created_at, user_id")
+  .eq("article_slug", slug)
+  .order("created_at", { ascending: false });
+---
+
+<BaseLayout title={post.data.title}>
+  <article class="max-w-2xl mx-auto px-6 pt-32 pb-40">
+
+    <h1 class="text-3xl md:text-4xl font-light mb-6 text-neutral-900">
+      {post.data.title}
+    </h1>
+
+    <p class="text-sm text-neutral-500 mb-12">
+      {post.data.date}
+    </p>
+
+    <div class="prose max-w-none text-neutral-800">
+      <Content />
+    </div>
+
+    <div class="border-t border-neutral-200 my-16"></div>
+
+    <!-- COMMENTS -->
+    <section class="space-y-8">
+
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-xl font-light text-neutral-800">
+          Reflections
+        </h2>
+        <p class="text-sm text-neutral-500">
+          {comments?.length ?? 0}
+        </p>
+      </div>
+
+      <!-- COMMENT FORM -->
+      {user ? (
+        <form method="POST" action="/api/comments" class="space-y-3">
+          <input type="hidden" name="article_slug" value={slug} />
+
+          <textarea
+            name="content"
+            rows="4"
+            required
+            placeholder="Leave a quiet thought…"
+            class="w-full rounded-xl bg-white border border-neutral-300 p-4 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+          ></textarea>
+
+          <button
+            type="submit"
+            class="rounded-xl border border-neutral-300 bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-800 transition"
+          >
+            Comment
+          </button>
+        </form>
+      ) : (
+        <p class="text-sm text-neutral-500">
+          <a href="/login" class="underline hover:text-neutral-900">
+            Login
+          </a>{" "}
+          to comment.
+        </p>
+      )}
+
+      <!-- COMMENTS LIST -->
+      <div class="space-y-5">
+        {comments?.map((c) => (
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 space-y-3 shadow-sm">
+
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-neutral-600">
+                Anonymous
+              </p>
+
+              {user && c.user_id === user.id && (
+  <div class="flex items-center gap-3 text-xs">
+    <a
+      href={`?edit=${c.id}`}
+      class="text-neutral-500 hover:text-neutral-800"
+    >
+      Edit
+    </a>
+
+    <form
+      method="POST"
+      action="/api/comments/delete"
+      onsubmit="return confirm('Delete this comment?');"
+    >
+      <input type="hidden" name="comment_id" value={c.id} />
+      <input type="hidden" name="redirect" value={`/articles/${slug}`} />
+
+      <button
+        type="submit"
+        class="text-red-500 hover:text-red-600 font-medium"
+      >
+        Delete
+      </button>
+    </form>
+  </div>
+)}
+
+            </div>
+
+            {editId === c.id ? (
+  <form method="POST" action="/api/comments/update" class="space-y-2">
+    <input type="hidden" name="id" value={c.id} />
+    <input type="hidden" name="slug" value={slug} />
+
+    <textarea
+      name="content"
+      rows="3"
+      required
+      class="w-full rounded-lg border border-neutral-300 p-3 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+    >{c.content}</textarea>
+
+    <div class="flex gap-3 text-xs">
+      <button
+        type="submit"
+        class="text-neutral-900 font-medium hover:underline"
+      >
+        Save
+      </button>
+      <a
+        href={`/articles/${slug}`}
+        class="text-neutral-500 hover:underline"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+) : (
+  <p class="text-neutral-800 leading-relaxed whitespace-pre-line">
+    {c.content}
+  </p>
+)}
+
+
+            <p class="text-xs text-neutral-400">
+              {new Date(c.created_at).toLocaleDateString()}
+            </p>
+
+          </div>
+        ))}
+      </div>
+
+    </section>
+  </article>
+</BaseLayout>

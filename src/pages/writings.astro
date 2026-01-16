@@ -1,0 +1,129 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const posts = await getCollection("posts");
+
+// Sort newest first
+posts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+// Latest posts (left column cards)
+const latest = posts.slice(0, 4);
+---
+
+<BaseLayout title="Writings">
+
+  <main class="mx-auto max-w-6xl px-6 pt-32 pb-12">
+
+    <!-- ================= GRID ================= -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-24">
+
+      <!-- ================= LEFT: LATEST POEMS ================= -->
+      <div class="md:col-span-2 space-y-16">
+
+        <header class="space-y-2">
+          <h2 class="text-sm tracking-widest uppercase text-neutral-500">
+            Latest Poems
+          </h2>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-12">
+
+          {latest.map(post => (
+            <a
+              href={`/articles/${post.slug}`}
+              class="group block rounded-xl overflow-hidden bg-neutral-800/80 hover:bg-neutral-800 transition"
+            >
+              {post.data.cover && (
+                <img
+                  src={post.data.cover}
+                  alt={post.data.title}
+                  class="h-56 w-full object-cover"
+                />
+              )}
+
+              <div class="p-5 space-y-2">
+                <h3 class="text-sm tracking-widest uppercase text-neutral-200">
+                  {post.data.title}
+                </h3>
+
+                {post.data.description && (
+                  <p class="text-xs text-neutral-400 leading-relaxed">
+                    {post.data.description}
+                  </p>
+                )}
+
+                <p class="text-xs text-neutral-500">
+                  {new Date(post.data.date).getFullYear()}
+                </p>
+              </div>
+            </a>
+          ))}
+
+        </div>
+
+        <a
+          href="/writings"
+          class="inline-block text-xs tracking-widest uppercase text-neutral-400 hover:text-neutral-200"
+        >
+          View all →
+        </a>
+
+      </div>
+
+      <!-- ================= RIGHT: SIDEBAR ================= -->
+      <aside class="space-y-16 mt-18">
+
+        <!-- Categories -->
+        <div class="space-y-4">
+          <h3 class="text-sm tracking-widest uppercase text-neutral-500">
+            Categories
+          </h3>
+
+          <ul class="space-y-2 text-sm text-neutral-400">
+            <li class="border-b border-neutral-700 pb-2">Love</li>
+            <li class="border-b border-neutral-700 pb-2">Loneliness</li>
+            <li class="border-b border-neutral-700 pb-2">Reality</li>
+            <li class="border-b border-neutral-700 pb-2">Philosophical</li>
+            <li class="border-b border-neutral-700 pb-2">Sensual</li>
+          </ul>
+        </div>
+
+        <!-- Published poems -->
+        <!-- Published poems -->
+<div class="space-y-6">
+  <h3 class="text-sm tracking-widest uppercase text-neutral-500">
+    Published Poems
+  </h3>
+
+  <div class="space-y-3 text-sm">
+    <p class="text-neutral-500">2021</p>
+
+    <!-- subtle divider -->
+    <div class="h-px bg-neutral-200/40"></div>
+
+    <ul class="space-y-2 text-neutral-600">
+      {posts.map(post => (
+        <li>
+          <a
+            href={`/articles/${post.slug}`}
+            class="hover:underline underline-offset-4"
+          >
+            {post.data.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+
+      </aside>
+
+    </section>
+
+  </main>
+
+</BaseLayout>

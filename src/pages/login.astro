@@ -1,0 +1,148 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getUser } from "../lib/getUser";
+
+
+
+const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+---
+
+<BaseLayout title="Login">
+  <section class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+
+    <!-- LEFT: LOGIN FORM -->
+    <div class="flex items-center justify-center px-8">
+      <div class="w-full max-w-md">
+
+        <h1 class="text-3xl font-semibold mb-2">
+          Welcome 
+        </h1>
+        <p class="text-sm text-neutral-500 mb-8">
+          Welcome to our website! Please enter your details.
+        </p>
+
+        <!-- Email -->
+        <label class="block text-sm mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          class="w-full mb-4 rounded-md border border-neutral-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+        />
+
+        <!-- Password -->
+        <label class="block text-sm mb-1">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="••••••••"
+          class="w-full mb-4 rounded-md border border-neutral-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+        />
+
+        <!-- Remember / Forgot -->
+        <div class="flex items-center justify-between text-sm mb-6">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" class="rounded" />
+            Remember me
+          </label>
+          <a href="#" class="text-neutral-600 hover:underline">
+            Forgot password
+          </a>
+        </div>
+
+        <!-- Login button -->
+        <button
+  id="login"
+  type="button"
+  class="w-full mb-4 rounded-md bg-neutral-800 py-2 text-white hover:bg-neutral-700 transition"
+>
+  Sign in
+</button>
+
+
+        <!-- Google button (visual only) -->
+        <button
+  type="button"
+  class="w-full flex items-center justify-center gap-2 rounded-md border border-neutral-300 py-2 hover:bg-neutral-100 transition"
+>
+  <i class="fa-brands fa-google text-red-500"></i>
+  Sign in with Google
+</button>
+
+
+        <pre id="output" class="mt-4 text-sm text-red-500"></pre>
+
+        <p class="mt-6 text-sm text-neutral-500 text-center">
+          Don’t have an account?
+          <a href="/signup" class="text-red-500 hover:underline">
+            Sign up for free
+          </a>
+        </p>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: IMAGE -->
+    <div class="hidden md:block">
+      <img
+        src="/images/image-1.jpg"
+        alt="Login illustration"
+        class="h-full w-full object-cover"
+      />
+    </div>
+
+  </section>
+</BaseLayout>
+
+<script type="module" define:vars={{ SUPABASE_URL, SUPABASE_KEY }}>
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const btn = document.getElementById("login");
+  const out = document.getElementById("output");
+
+  btn.addEventListener("click", async () => {
+    out.textContent = "Logging in…";
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      out.textContent = error.message;
+    } else {
+      window.location.href = "/writings";
+    }
+  });
+</script>
+
+
+<script type="module" define:vars={{ SUPABASE_URL, SUPABASE_KEY }}>
+  const btn = document.getElementById("login");
+  const out = document.getElementById("output");
+
+  btn.addEventListener("click", async () => {
+    out.textContent = "Logging in…";
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("/api/login", {
+      method: "POST",
+      body: new URLSearchParams({ email, password }),
+    });
+
+    if (!res.ok) {
+      out.textContent = await res.text();
+    } else {
+      window.location.href = "/writings";
+    }
+  });
+</script>
+

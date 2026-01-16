@@ -1,0 +1,96 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+---
+
+<BaseLayout title="Sign up">
+  <section class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+
+    <!-- LEFT: SIGN UP FORM -->
+    <div class="flex items-center justify-center px-8">
+      <div class="w-full max-w-md">
+
+        <h1 class="text-3xl font-semibold mb-2">
+          Create an account
+        </h1>
+        <p class="text-sm text-neutral-500 mb-8">
+          Join us by creating your account.
+        </p>
+
+        <!-- Email -->
+        <label class="block text-sm mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          class="w-full mb-4 rounded-md border border-neutral-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+        />
+
+        <!-- Password -->
+        <label class="block text-sm mb-1">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Create a password"
+          class="w-full mb-6 rounded-md border border-neutral-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+        />
+
+        <!-- Sign up button -->
+        <button
+          id="signup"
+          type="button"
+          class="w-full mb-4 rounded-md bg-neutral-800 py-2 text-white hover:bg-neutral-700 transition"
+        >
+          Create account
+        </button>
+
+        <p id="output" class="mt-4 text-sm text-red-500"></p>
+
+        <p class="mt-6 text-sm text-neutral-500 text-center">
+          Already have an account?
+          <a href="/login" class="text-neutral-900 hover:underline">
+            Sign in
+          </a>
+        </p>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: IMAGE -->
+    <div class="hidden md:block">
+      <img
+        src="/images/haiku-right.png"
+        alt="Signup illustration"
+        class="h-full w-full object-cover"
+      />
+    </div>
+
+  </section>
+</BaseLayout>
+
+<script type="module" define:vars={{ SUPABASE_URL, SUPABASE_KEY }}>
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const out = document.getElementById("output");
+
+  document.getElementById("signup").onclick = async () => {
+    out.textContent = "Creating account…";
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      out.textContent = error.message;
+    } else {
+      window.location.href = "/login";
+    }
+  };
+</script>
